@@ -376,6 +376,19 @@ one completes a handshake:
 If a network blocks one, the client falls back to the next automatically. You can
 pin a specific carrier with `wgclient up --transport …` or in the app.
 
+**It also comes back by itself.** If the tunnel dies while you are connected —
+the link drops, you move to another network, or the computer **sleeps and wakes**
+— the client re-establishes it automatically. Waking from sleep and the network
+returning are detected as events (on Windows through the system's power and
+network notifications), so recovery is prompt rather than waiting on a timer; if
+no such signal arrives it still notices a dead tunnel within about two minutes.
+It first restores your normal routing so the machine stays online, then reconnects
+(retrying 5 s, 10 s, 20 s, 30 s, then every minute), re-resolving the server and
+re-pinning it to whatever network you are on now. While this is happening the app
+says **Reconnecting…** and the tray shows the same — you are *not* on the VPN
+until it says **Connected** again. Only an explicit **Disconnect** (or
+`wgclient down`) stops it.
+
 ### The privileged service and the loopback control channel
 
 Creating the virtual interface and changing the system routing table needs
@@ -462,8 +475,23 @@ to be sure of what you downloaded.
 - **"Cannot be opened" (macOS) / "Windows protected your PC"** — the build is not
   code-signed yet. Use *Open Anyway* (macOS) or *More info → Run anyway* (Windows);
   see the install steps above.
+- **Antivirus flags the download (e.g. Defender "Wacatac!ml")** — this is a known
+  false positive that some antivirus engines raise for new, unsigned VPN software
+  (it creates a network adapter and edits routing). The apps carry no malware; every
+  release ships a `SHA256SUMS` you can verify. If your antivirus blocks the download,
+  allow the file in its protection history, or add the folder as an exclusion, then
+  verify the checksum before running. Code signing to remove the warning is in
+  progress.
 - **The app says the tunnel service is not installed** — click **Install** (or
   **Update** if you just upgraded). On Windows, make sure you allow the UAC prompt.
+- **Windows: no administrator prompt appears when you click Install** — click it
+  again. The app has two ways of asking Windows for elevation; if the first cannot
+  start the prompt it falls back to the other, and after two such failures it
+  switches to the working one for good.
+- **It says Reconnecting…** — the network dropped the tunnel and the client is
+  bringing it back; you have normal internet meanwhile but are not on the VPN.
+  **Reconnect now** forces an attempt; **Stop reconnecting** (or `wgclient down`)
+  makes it stay off.
 - **Connected but no internet** — disconnect and reconnect; the client restores
   normal routing on disconnect. If a machine is left without internet after a
   crash, a reboot clears any leftover VPN routes.
