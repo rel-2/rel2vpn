@@ -31,6 +31,17 @@ Wi‑Fi, mobile networks, and countries that block plain VPNs.
   - [Devices](#devices)
   - [Settings](#settings)
   - [The tunnel service: install, re-install, uninstall](#the-tunnel-service-install-re-install-uninstall)
+- [Your account on rel2.com](#your-account-on-rel2com)
+  - [Profile, residence and picture](#profile-residence-and-picture)
+  - [Security: password and two-factor authentication](#security-password-and-two-factor-authentication)
+  - [Subscription](#subscription) · [Usage](#usage) · [Privacy: your data](#privacy-your-data)
+  - [Routes you build, and sharing them](#routes-you-build-and-sharing-them)
+  - [Device configurations: GenConfig and your keys](#device-configurations-genconfig-and-your-keys)
+- [Anchor mode — your home as an exit](#anchor-mode--your-home-as-an-exit)
+  - [What an Anchor is](#what-an-anchor-is)
+  - [Set one up with the app](#set-one-up-with-the-app) · [with the CLI, no app](#set-one-up-with-the-cli-no-app)
+  - [Use it: routes and sharing](#use-it-routes-and-sharing)
+  - [How it runs, and what keeps it safe](#how-it-runs-and-what-keeps-it-safe)
 - [The command-line client — wgclient](#the-command-line-client--wgclient)
   - [Set it up](#set-it-up)
   - [Command reference](#command-reference)
@@ -61,6 +72,14 @@ Wi‑Fi, mobile networks, and countries that block plain VPNs.
 - **Survives the window closing** — close the app and the tunnel keeps running.
 - **A real CLI** — `wgclient` does everything the app does, for servers, headless
   boxes and OpenWrt / GL.iNet routers.
+- **Your home as an exit** — make a machine you own an **Anchor** and keep
+  leaving the internet from home wherever you travel; share it with the people
+  you name. Works from the app or from one CLI command on a Pi or a VDS.
+- **Keys made on your side** — device keys are generated in your app, browser or
+  service; the server holds only the public half and can never impersonate you.
+- **Two-factor sign-in, and your data in your hands** — TOTP with recovery codes,
+  a download of everything we hold as one JSON Lines file, and one-click account
+  deletion.
 
 ---
 
@@ -69,6 +88,10 @@ Wi‑Fi, mobile networks, and countries that block plain VPNs.
 **Desktop:** download for your system below, open it, **sign in**, press
 **Connect**. You will be asked for your administrator password once, so the app
 can install the tunnel service. That is the whole setup.
+
+**Home exit on a headless box (VDS, Raspberry Pi):** unpack `wgclient` for the
+machine and run `sudo ./wgclient anchor-setup --name "Pi at home"` — see
+[Anchor mode](#anchor-mode--your-home-as-an-exit).
 
 **Command line:**
 
@@ -94,7 +117,7 @@ Latest release, always at these links:
 | Windows 11 — ARM64 | [rel2-vpn_windows_arm64.zip](../../releases/latest/download/rel2-vpn_windows_arm64.zip) |
 | Linux — x64 | [rel2-vpn_linux_amd64.tar.gz](../../releases/latest/download/rel2-vpn_linux_amd64.tar.gz) |
 | Linux — ARM64 | [rel2-vpn_linux_arm64.tar.gz](../../releases/latest/download/rel2-vpn_linux_arm64.tar.gz) |
-| CLI `wgclient` — Linux x64/ARM64, macOS Intel/Apple, Windows x64/ARM64, OpenWrt (mipsle) | see the [release assets](../../releases/latest) (`wgclient_<os>_<arch>.tar.gz` / `.zip`) |
+| CLI `wgclient` — Linux x64 / ARM64 / ARMv7 (32-bit Raspberry Pi OS), macOS Intel/Apple, Windows x64/ARM64, OpenWrt (mipsle) | see the [release assets](../../releases/latest) (`wgclient_<os>_<arch>.tar.gz` / `.zip`) |
 
 Every release ships a `SHA256SUMS` file — see [Verify what you run](#verify-what-you-run).
 
@@ -151,11 +174,16 @@ graphical password prompt), or with `sudo` if you started the app from a termina
 
 ### Create an account or sign in
 
-- **Sign in** with the email and password of your rel2.com account.
+- **Sign in** with the email and password of your rel2.com account. If you turned
+  on two-factor authentication, the app then asks for the code from your
+  authenticator app (or a recovery code).
 - **Create an account** — on the sign-in screen choose *Create account*. New
-  accounts start as **clients**; pick a plan on [rel2.com](https://rel2.com) or in
-  the app's Account tab to unlock routes. If email is enabled on the server you
-  will receive a verification message.
+  accounts start as **clients**; pick a plan on [rel2.com](https://rel2.com)
+  (Settings → Subscription) to unlock routes. If email is enabled on the server
+  you will receive a verification message. On the website, sign-up also asks for
+  your **country of residence** (and state or province where privacy law is
+  regional) — it decides which privacy law applies to you and nothing else; see
+  [Your account on rel2.com](#your-account-on-rel2com).
 - Forgot your password? Use **Forgot password** on [rel2.com](https://rel2.com).
 
 Your session is stored on this computer so you stay signed in between launches.
@@ -176,9 +204,14 @@ Your session is stored on this computer so you stay signed in between launches.
 Each machine is a **device** on your account. The app creates one for this machine
 automatically the first time you connect (named after its hostname) and reuses it
 afterwards — one machine is one device, however many routes you use. In the
-**Devices** view you can add, rename, or remove devices, and download a device's
-configuration (WireGuard `.conf`, AmneziaWG `.conf`, or the AmneziaVPN key) to use
-it in a standard client, on a phone, or on a router. Removing a device frees a slot
+**Devices** view you can add, rename, or remove devices, and press **GenConfig**
+on one to get its configuration (WireGuard `.conf`, AmneziaWG `.conf`, or the
+AmneziaVPN key with its QR codes) for a standard client, a phone, or a router.
+**Every GenConfig is a fresh key**: the key pair is generated in the app on the
+spot, only the public half is sent to your account, and the previous configuration
+of that device stops working the moment the node learns the new key — so save the
+file or scan the code right away. The machine the app runs on needs no GenConfig:
+its own key is made and kept by the tunnel service. Removing a device frees a slot
 under your plan's device limit.
 
 ### Settings
@@ -210,6 +243,204 @@ The app manages it for you:
 
 You never edit service files by hand; the equivalent CLI commands are
 [`wgclient install`](#command-reference) and `wgclient uninstall`.
+
+---
+
+## Your account on rel2.com
+
+Everything about the account lives on the website under the avatar menu:
+**Profile** opens Settings on its first tab; **Settings** has the rest. The
+desktop app's own Settings are about this computer only.
+
+### Profile, residence and picture
+
+Your name, the language of emails, your **profile picture** (upload any PNG,
+JPEG or GIF; it is cropped square and scaled down), and your **country of
+residence** — plus the state or province where privacy law is regional (United
+States, Canada). Residence is asked at sign-up and can be changed here at any
+time; it decides which privacy law we cite for you (GDPR in the EU/EEA, the UK
+GDPR, California's CCPA and the other US state acts, PIPEDA and Quebec's Law 25,
+and so on) and is used for nothing else. Accounts created through a plan checkout
+start without one and are reminded until it is set.
+
+### Security: password and two-factor authentication
+
+Change your password here. **Two-factor authentication** (TOTP — Google
+Authenticator, Aegis, 1Password, Authy and the like) adds a 6-digit code to every
+sign-in on the website, in the desktop app and in the CLI. Turning it on shows a
+QR code and the secret; the first valid code enables it and hands you **eight
+recovery codes**, shown once — keep them offline; each signs you in once if the
+phone is gone. You can regenerate the codes (with a current code) and turn the
+feature off (password plus a code). Lost both the phone and the codes? Write to
+support@rel2.com from your account email; after checking who you are an
+administrator removes the second factor and you turn it on again. Every sign-in
+sends you an email with the IP address it came from; a **security log** of
+sign-ups, sign-ins, failed attempts, password and profile changes, device changes
+and exports is kept for 400 days and included in your data export.
+Two-factor authentication is required before a machine can become an
+[Anchor](#anchor-mode--your-home-as-an-exit).
+
+### Subscription
+
+Clients see their plan, whether it is active, and the renewal date. **Cancel
+subscription** stops the renewal only: the service keeps working until the end
+of the period you paid for (or the trial), the tab shows "Active until" and a
+**Renew** button. Renew inside that leftover period switches the subscription
+straight back to renewing, nothing charged; after the period ends, Renew is a
+regular Stripe checkout for your previous plan (the free trial is used up, so the
+card is charged right away) and your devices reconnect as they were. **Manage
+billing** opens the Stripe portal for cards and invoices; a full **Refund** is
+offered for 24 hours after a charge. Packages granted by hand by the operator
+have no expiry and nothing to renew.
+
+### Usage
+
+Download and upload over the last 30 days, devices used against your limit, how
+many are connected right now, your traffic allowance bar, a per-day chart and a
+per-device table — and **Recent connections**: the connection log we keep for
+security and abuse handling (device, the public IP you connected from, the
+route with its entry and exit, the exit IP, start, length, traffic; brief
+reconnects joined into one row). It is kept 180 days and never contains the
+sites you visit.
+
+### Privacy: your data
+
+Shows the privacy law that applies to your residence and the rights everyone
+gets regardless: access, portability, correction, erasure, and no sale of data.
+**Download my data** gives you one JSON Lines file — one record per line —
+with your account and residence, sign-in history, the security log, subscription
+and invoices, your routes, devices with their public keys, Anchors with their
+public-IP history, daily traffic counters and the connection log. Passwords,
+private keys, preshared keys and session tokens are never in it. **Delete my
+account** removes the account with its devices, configurations, routes, Anchors
+and logs immediately and for good — type `delete` to confirm; a subscription
+that still renews must be cancelled first, so nothing is charged afterwards.
+Invoices stay with the payment provider as tax law requires.
+
+### Routes you build, and sharing them
+
+Multi-hop and Max plans can build their own routes (Routes → Add): a Direct
+route through one node, a Double with separate entry and exit, chains, multi-hop
+graphs, or the automatic kind that picks and heals itself. Your routes are
+private to your account — and you can **Share** one by the email of another
+rel2 account: the invitee sees it in their app, their traffic leaves through your
+route, you see the invitees and can withdraw at any time. An invitee needs no
+plan: a **guest** account (no package) can use routes shared with it and gets two
+devices for them.
+
+### Device configurations: GenConfig and your keys
+
+Device keys are generated on your side — in your browser when you press
+**GenConfig** on the website, in the desktop app, or by the tunnel service for
+the machine it runs on. Our servers receive only the public key, so nobody at
+rel2 can impersonate your device. Because the server never holds the private
+key, "download the configuration again" means a **new key**: every GenConfig
+shows a fresh configuration once, and the previous one stops working. Devices
+created before September 2026 keep a server-generated key until their next
+GenConfig replaces it (the data export marks them).
+
+---
+
+## Anchor mode — your home as an exit
+
+### What an Anchor is
+
+rel² is not only a VPN — it also connects you to your own machines. A computer
+you own — the desktop at home, a NAS, a Raspberry Pi, a small server, a GL.iNet
+router — becomes an **Anchor**: an exit that belongs to you. Wherever you
+travel, your phone and laptop keep leaving the internet from home, with the home
+address and the home country: local streaming and services that are "for
+residents only", banking that wants the IP it knows. You can let named people —
+family abroad, a friend — use it too, by invitation. Nothing is offered to
+strangers and nothing is sold; this is your connection, for your people.
+
+Plans: **Multi-hop** runs one Anchor for your own devices; **Max** runs two and
+shares them with up to five invited people. Two-factor authentication must be on
+for the account, and the Anchor machine must not run another VPN. A machine is
+either connected to rel2 or an Anchor — never both.
+
+### Set one up with the app
+
+Open the desktop app on the machine that should be the exit, press
+**⋮ → ⚓ Anchor mode**, give it a name (for example *Home desktop*) and press
+**Become my Anchor**. The service enrols it with your account (a few seconds;
+the screen shows *Enrolling…*, then the state or the reason it failed). From then
+on the screen shows the public IP, the links to rel2 nodes, live connections and
+what the LAN guard refused, with **Turn off / Turn on** and **Remove from this
+machine**. The app's own **Connect** is disabled while the machine is an Anchor.
+
+### Set one up with the CLI, no app
+
+For a VDS you rent, a Raspberry Pi or any headless Linux (systemd) or macOS box,
+one command does everything:
+
+```sh
+# pick the build: linux_amd64 (VDS), linux_arm64 (Pi 4/5 with a 64-bit OS), linux_armv7 (older Pi, 32-bit OS), darwin_arm64 / darwin_amd64 (Mac)
+curl -fsSL https://github.com/rel-2/rel2vpn/releases/latest/download/wgclient_linux_arm64.tar.gz | tar -xz
+sudo ./wgclient anchor-setup --name "Pi in Vilnius"     # installs the service, signs in (email, password, 2FA code), enrols, waits for the first sync
+wgclient anchor                                          # the state: links, public IP, counters — any time
+```
+
+`anchor-setup` is safe to re-run; it skips what is done. For provisioning
+without a terminal, pass `--email you@example.com` and pipe the password on
+standard input. The service starts with the machine and needs no app
+afterwards. To update a headless box later, download the new build and run
+`sudo ./wgclient install` again — settings and the Anchor's identity are kept.
+`wgclient anchor-off` / `anchor-on` is the switch. OpenWrt routers (mipsle) have
+no service manager the installer supports: run `wgclient run` in the foreground
+under your own init there.
+
+### Use it: routes and sharing
+
+On the website the Anchor appears on the **Devices** page in the
+**⚓ Anchors — home exits** card: online or off, its public IP, how many routes
+exit through it, **LAN access**, turn on/off, rename, remove. Then build a
+route with it: **Routes → Add → Double**, any rel2 node as the entry, and your
+Anchor under *⚓ Your Anchors* as the exit. Put your phone or laptop on that
+route like on any other, and it leaves the internet from home. **Share** the
+route with people by their account email — they use their own account (a
+guest account needs no plan), you see that they are connected, and you can
+withdraw the invitation any time. The route shows *home offline* while the
+Anchor machine is off or asleep, and comes back by itself.
+
+**LAN access** is off by default: nothing that goes through the Anchor can
+reach your home network. Turn it on and *your own devices* on that route can —
+invited people never can. Use a machine that is always on (a Pi, a NAS, a
+router) rather than a laptop; the home upload speed is the ceiling for
+everyone using the Anchor.
+
+### How it runs, and what keeps it safe
+
+- **The service is the Anchor.** Everything runs in the tunnel service: it starts
+  with the machine, syncs with rel2.com every minute and keeps a link to the entry
+  node of every route that exits through it, whether or not the app is open.
+  At enrolment it receives its **own** account session (renewed by every sync;
+  signing out of the app does not touch it). If that session is ever revoked (you
+  changed your password) or expired (the machine was off for a month), opening the
+  app's Anchor screen — or running `wgclient anchor-on` — hands it a fresh sign-in
+  and it renews itself. The enrolment lives in `conf/anchor.json` in the service's
+  store.
+- **No ports to open.** The Anchor dials *out* to the rel2 node with a certificate
+  of its own (a separate certificate authority — an Anchor can never pass as a
+  rel2 node, nor the other way round). Traffic arriving for the internet is
+  handled by a user-space network stack inside the service: nothing is added to
+  your machine's routing table or firewall, and nothing on the machine is
+  reachable through the link.
+- **The guard.** Private addresses (your home network), loopback, link-local,
+  multicast and outgoing mail (port 25) are refused; LAN access only opens
+  private addresses, only for your own devices. Refusals are counted on the
+  Anchor screen.
+- **Other VPNs.** Anchor mode refuses to start, and pauses, while another VPN
+  interface is active on the machine — it would swallow or leak the traffic.
+- **What is logged.** The rel2 servers keep the Anchor's public IP and its history
+  (a home address changes; an abuse notice cites the one that was current), when
+  it last checked in, the invitations you send, and sessions through it in the
+  connection log with the Anchor as the exit. Never the sites anyone visits.
+- **Responsibility.** Traffic of your devices and of the people you invite leaves
+  from your connection and is attributed to it by third parties. Invite people you
+  know, keep to your internet provider's terms and local law, and remember you can
+  withdraw an invitation or turn the Anchor off at any moment. Section 9 of the
+  Terms of Use spells this out.
 
 ---
 
@@ -247,9 +478,11 @@ Run `wgclient <command> --help` for the exact options on your version.
 
 #### `wgclient login <email> [--url <url>]`
 Sign in to your rel2 VPN account. The password is read from the terminal (or from
-one line of standard input, for provisioning). The session is saved on this
-machine, so later commands do not ask again. `--url` points at a self-hosted
-control plane (default `https://rel2.com`).
+one line of standard input, for provisioning). If two-factor authentication is on
+for the account, the 6-digit code from your authenticator app — or one of your
+recovery codes — is asked for next. The session is saved on this machine, so
+later commands do not ask again. `--url` points at a self-hosted control plane
+(default `https://rel2.com`).
 
 ```bash
 wgclient login you@example.com
@@ -298,6 +531,35 @@ its control token with the service.
 #### `wgclient uninstall [--purge]`
 Remove the system service (needs administrator / root). `--purge` also deletes the
 stored tunnel configuration and state.
+
+#### `wgclient anchor`
+Anchor mode state: name and id, whether the mode is on and running, the public IP
+the rel2 node sees, the account's switch, the last sync, the certificate's expiry,
+each link (node, up/down, traffic, the routes it carries) and the counters —
+live connections and flows refused by the LAN/port guard. See
+[Anchor mode](#anchor-mode--your-home-as-an-exit).
+
+#### `wgclient anchor-setup [--name <name>] [--email <email>] [--url <url>] [--no-install]`
+Make this Linux or macOS machine an Anchor in one command (needs root): installs
+the service if it is missing, signs in if the machine holds no session (email,
+password, two-factor code; `--email` plus the password on standard input for
+provisioning), enrols the machine with your account, turns Anchor mode on and
+waits for the first sync. Re-running skips what is done.
+
+```bash
+sudo wgclient anchor-setup --name "Pi in Vilnius"
+echo 'my-password' | sudo wgclient anchor-setup --name vds-1 --email you@example.com
+```
+
+#### `wgclient anchor-enrol [--name <name>]`
+Only the enrolment: register this machine as an Anchor of the account you are
+signed in as and turn Anchor mode on (the service must be installed and running).
+
+#### `wgclient anchor-on` / `wgclient anchor-off`
+The switch. `anchor-on` refuses while the machine is connected to a route
+(disconnect first — a machine is either connected or an Anchor); `anchor-off`
+lets it connect to rel2 again. Both also hand the service your current sign-in,
+which renews the Anchor's own session when it had expired.
 
 #### `wgclient authorize [--token-to <file>] [--all-users]`
 On a shared computer, authorize another user to talk to the already-installed
@@ -439,11 +701,15 @@ your user (`0600`).
 | Linux / macOS | `/var/lib/wgclient/` (recorded in `/etc/wgclient/home`) |
 | Windows | `%ProgramData%\wgclient\` |
 
-Under `conf/` it holds `tunnel.conf` (the active WireGuard/AmneziaWG configuration,
-including this device's private key), `route.name` (the current route), a `down`
-marker when you have disconnected, `hosts.cache` (last-known server addresses, so a
-reconnect works even if DNS is briefly unavailable), and `conn.log` (the recent
-connection log you see in the app). These are owned by the service account
+Under `conf/` it holds `device.key` (this machine's WireGuard keypair — generated
+here by the service; only the public key is ever sent to the server, which
+therefore cannot impersonate your device), `tunnel.conf` (the active
+WireGuard/AmneziaWG configuration, including that private key), `route.name`
+(the current route), a `down` marker when you have disconnected, `hosts.cache` (last-known server addresses, so a
+reconnect works even if DNS is briefly unavailable), `conn.log` (the recent
+connection log you see in the app), and — on an Anchor — `anchor.json` (the
+Anchor's identity key and certificate, its link key, and its own account session
+for the sync loop). These are owned by the service account
 (root / LocalSystem) and readable only by it.
 
 `wgclient uninstall` removes the service and its binary; add `--purge` to also
@@ -499,8 +765,24 @@ to be sure of what you downloaded.
   libraries listed under [Install — Linux](#install--linux).
 - **CLI: `up` says "install the service"** — run `sudo wgclient install` once, or
   `sudo wgclient run` to run the tunnel in the foreground without a service.
+- **Lost the authenticator phone** — sign in with one of your recovery codes and
+  set two-factor authentication up again in Settings → Security. Lost the codes
+  too? Write to support@rel2.com from your account email.
+- **Anchor: "another VPN is active"** — disconnect or uninstall the other VPN
+  (Tailscale, WireGuard, OpenVPN, a commercial app…) on the Anchor machine; the
+  service pauses until it is gone.
+- **Anchor: "the account session expired or was revoked"** — you changed your
+  password, or the machine was off for over a month. Open the app's Anchor screen,
+  or run `wgclient anchor-on`, once: it hands the service a fresh sign-in.
+- **Anchor: "turn on two-factor authentication first" / "your plan has no Anchor"**
+  — Anchors need 2FA on the account and the Multi-hop (one) or Max (two) plan.
+- **A route through my Anchor says "home offline"** — the Anchor machine is off,
+  asleep, or without internet; `wgclient anchor` on it shows the links. Nothing
+  leaks meanwhile: traffic for that route waits instead of leaving elsewhere.
+- **Windows: "anchor mode is not available in this build"** — the service is older
+  than the app; update it (the app offers **Update** when versions differ).
 - Still stuck? Email **support@rel2.com** with your OS and, for the CLI, the output
-  of `wgclient status`.
+  of `wgclient status` (and `wgclient anchor` on an Anchor).
 
 ---
 
