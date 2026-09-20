@@ -37,7 +37,7 @@ Wi‑Fi, mobile networks, and countries that block plain VPNs.
   - [Subscription](#subscription) · [Usage](#usage) · [Privacy: your data](#privacy-your-data)
   - [Routes you build, and sharing them](#routes-you-build-and-sharing-them)
   - [Device configurations: GenConfig and your keys](#device-configurations-genconfig-and-your-keys)
-- [Anchor mode — your home as an exit](#anchor-mode--your-home-as-an-exit)
+- [Anchor mode — your home as an exit](#anchor-mode--your-own-exit)
   - [What an Anchor is](#what-an-anchor-is)
   - [Set one up with the app](#set-one-up-with-the-app) · [with the CLI, no app](#set-one-up-with-the-cli-no-app)
   - [Use it: routes and sharing](#use-it-routes-and-sharing)
@@ -89,9 +89,9 @@ Wi‑Fi, mobile networks, and countries that block plain VPNs.
 **Connect**. You will be asked for your administrator password once, so the app
 can install the tunnel service. That is the whole setup.
 
-**Home exit on a headless box (VDS, Raspberry Pi):** unpack `wgclient` for the
+**An Anchor on a headless box (VDS, Raspberry Pi):** unpack `wgclient` for the
 machine and run `sudo ./wgclient anchor-setup --name "Pi at home"` — see
-[Anchor mode](#anchor-mode--your-home-as-an-exit).
+[Anchor mode](#anchor-mode--your-own-exit).
 
 **Command line:**
 
@@ -181,8 +181,10 @@ graphical password prompt), or with `sudo` if you started the app from a termina
   accounts start as **clients**; pick a plan on [rel2.com](https://rel2.com)
   (Settings → Subscription) to unlock routes. If email is enabled on the server
   you will receive a verification message. On the website, sign-up also asks for
-  your **country of residence** (and state or province where privacy law is
-  regional) — it decides which privacy law applies to you and nothing else; see
+  a **username** (your public handle, `@name` — people share routes with you by
+  it; suggested from your name, editable, checked live) and your **country of
+  residence** (and state or province where privacy law is regional) — the latter
+  decides which privacy law applies to you and nothing else; see
   [Your account on rel2.com](#your-account-on-rel2com).
 - Forgot your password? Use **Forgot password** on [rel2.com](https://rel2.com).
 
@@ -210,8 +212,16 @@ AmneziaVPN key with its QR codes) for a standard client, a phone, or a router.
 **Every GenConfig is a fresh key**: the key pair is generated in the app on the
 spot, only the public half is sent to your account, and the previous configuration
 of that device stops working the moment the node learns the new key — so save the
-file or scan the code right away. The machine the app runs on needs no GenConfig:
-its own key is made and kept by the tunnel service. Removing a device frees a slot
+file or scan the code right away. A device can instead **keep its key on the
+server** (a switch when you add it, or later in Edit): then **Config** shows its
+current configuration again any time with the same key, and a route change
+never needs a new key — for a device you cannot easily reach. Turning the switch
+on makes a new key (install that configuration once); turning it off makes the
+server forget the key while the device keeps working. The machine the app runs
+on needs no GenConfig: its own key is made and kept by the tunnel service — or,
+for an installation from before September 2026, kept on the server; either
+works, and the switch can be changed for it too (it reconnects by itself).
+Removing a device frees a slot
 under your plan's device limit.
 
 ### Settings
@@ -254,9 +264,11 @@ desktop app's own Settings are about this computer only.
 
 ### Profile, residence and picture
 
-Your name, the language of emails, your **profile picture** (upload any PNG,
-JPEG or GIF; it is cropped square and scaled down), and your **country of
-residence** — plus the state or province where privacy law is regional (United
+Your name, your **username** (the public `@handle` other people see and share
+routes with — letters, digits and hyphens, 2–32 characters, unique; change it
+here any time, the old one becomes free), the language of emails, your
+**profile picture** (upload any PNG, JPEG or GIF; it is cropped square and
+scaled down), and your **country of residence** — plus the state or province where privacy law is regional (United
 States, Canada). Residence is asked at sign-up and can be changed here at any
 time; it decides which privacy law we cite for you (GDPR in the EU/EEA, the UK
 GDPR, California's CCPA and the other US state acts, PIPEDA and Quebec's Law 25,
@@ -278,7 +290,7 @@ sends you an email with the IP address it came from; a **security log** of
 sign-ups, sign-ins, failed attempts, password and profile changes, device changes
 and exports is kept for 400 days and included in your data export.
 Two-factor authentication is required before a machine can become an
-[Anchor](#anchor-mode--your-home-as-an-exit).
+[Anchor](#anchor-mode--your-own-exit).
 
 ### Subscription
 
@@ -322,11 +334,12 @@ Invoices stay with the payment provider as tax law requires.
 Multi-hop and Max plans can build their own routes (Routes → Add): a Direct
 route through one node, a Double with separate entry and exit, chains, multi-hop
 graphs, or the automatic kind that picks and heals itself. Your routes are
-private to your account — and you can **Share** one by the email of another
-rel2 account: the invitee sees it in their app, their traffic leaves through your
-route, you see the invitees and can withdraw at any time. An invitee needs no
-plan: a **guest** account (no package) can use routes shared with it and gets two
-devices for them.
+private to your account — and you can **Share** any of them by the **username**
+of another rel2 account (type the first letters, pick from the list — like
+GitHub): the invitee sees it in their app, their traffic leaves through your
+route, you see the invitees (by username; nobody's email is shown to anybody)
+and can withdraw at any time. An invitee needs no plan: a **guest** account (no
+package) can use routes shared with it and gets two devices for them.
 
 ### Device configurations: GenConfig and your keys
 
@@ -335,21 +348,33 @@ Device keys are generated on your side — in your browser when you press
 the machine it runs on. Our servers receive only the public key, so nobody at
 rel2 can impersonate your device. Because the server never holds the private
 key, "download the configuration again" means a **new key**: every GenConfig
-shows a fresh configuration once, and the previous one stops working. Devices
-created before September 2026 keep a server-generated key until their next
-GenConfig replaces it (the data export marks them).
+shows a fresh configuration once, and the previous one stops working.
+
+That is the default, and the choice is yours per device: **Keep the key on the
+server** (a checkbox when you add a device, and in its Edit dialog) makes the
+server generate and keep the key instead. Then **Configuration** shows the
+current configuration again at any time — same key, nothing changes — and
+switching such a device to a route with a different entry server only needs the
+configuration re-installed, not a new key: the right choice for a device far
+away that you set up once and may need to move between routes later. Turning
+the switch on makes a new key right then (install that configuration once);
+turning it off deletes the key from our side while the device keeps working,
+and its next configuration comes from GenConfig. The data export marks devices
+whose key we hold. Devices created before September 2026 simply have the switch
+on, and stay that way — nothing to do; the same goes for the machine of an app
+or CLI installed before then.
 
 ---
 
-## Anchor mode — your home as an exit
+## Anchor mode — your own exit
 
 ### What an Anchor is
 
 rel² is not only a VPN — it also connects you to your own machines. A computer
-you own — the desktop at home, a NAS, a Raspberry Pi, a small server, a GL.iNet
-router — becomes an **Anchor**: an exit that belongs to you. Wherever you
-travel, your phone and laptop keep leaving the internet from home, with the home
-address and the home country: local streaming and services that are "for
+you own — the desktop at home, a NAS, a Raspberry Pi, a VPS abroad, a GL.iNet
+router — becomes an **Anchor**: a *custom exit* that belongs to you. Wherever
+you travel, your phone and laptop keep leaving the internet from that machine,
+with its address and its country: local streaming and services that are "for
 residents only", banking that wants the IP it knows. You can let named people —
 family abroad, a friend — use it too, by invitation. Nothing is offered to
 strangers and nothing is sold; this is your connection, for your people.
@@ -361,13 +386,20 @@ either connected to rel2 or an Anchor — never both.
 
 ### Set one up with the app
 
-Open the desktop app on the machine that should be the exit, press
-**⋮ → ⚓ Anchor mode**, give it a name (for example *Home desktop*) and press
-**Become my Anchor**. The service enrols it with your account (a few seconds;
-the screen shows *Enrolling…*, then the state or the reason it failed). From then
-on the screen shows the public IP, the links to rel2 nodes, live connections and
-what the LAN guard refused, with **Turn off / Turn on** and **Remove from this
-machine**. The app's own **Connect** is disabled while the machine is an Anchor.
+The app's Home has a mode selector, like a router's: **🌐 Client** (connect
+this computer to routes) or **⚓ Anchor** (make it a custom exit). On the
+machine that should be the exit choose **Anchor**, give it a name (for example
+*Home desktop*) and press **Become my Anchor**. The service enrols it with your
+account (a few seconds; the screen shows *Enrolling…*, then the state or the
+reason it failed). From then on Home *is* the Anchor: its name, the public IP,
+how many entry nodes are linked, live connections and traffic — the route list
+and Connect are gone, and the tray says *Anchor mode*. **Details** (or
+**⋮ → ⚓ Anchor**) shows each link, what the LAN guard refused, and **Remove
+from this machine**. Choose **Client** to switch back (a confirmation screen,
+then the routes are back); the machine's own internet is unchanged in either
+mode. Each link shows *linked* when the Anchor talks to the entry node directly
+over UDP, or *linked · relay* when only the TLS fallback gets through — the
+relay works everywhere but is much slower; see Troubleshooting.
 
 ### Set one up with the CLI, no app
 
@@ -393,21 +425,22 @@ under your own init there.
 ### Use it: routes and sharing
 
 On the website the Anchor appears on the **Devices** page in the
-**⚓ Anchors — home exits** card: online or off, its public IP, how many routes
-exit through it, **LAN access**, turn on/off, rename, remove. Then build a
-route with it: **Routes → Add → Double**, any rel2 node as the entry, and your
-Anchor under *⚓ Your Anchors* as the exit. Put your phone or laptop on that
-route like on any other, and it leaves the internet from home. **Share** the
-route with people by their account email — they use their own account (a
-guest account needs no plan), you see that they are connected, and you can
-withdraw the invitation any time. The route shows *home offline* while the
-Anchor machine is off or asleep, and comes back by itself.
+**⚓ Anchors — custom exits** card (the **?** next to the title explains it):
+online or off, its public IP, how many routes exit through it, **LAN access**,
+turn on/off, rename, remove. Then build a route with it: **Routes → Add →
+Double**, any rel2 node as the entry, and your Anchor under *⚓ Your Anchors* as
+the exit. Put your phone or laptop on that route like on any other, and it
+leaves the internet from the Anchor. **Share** the route with people by their
+**username** — they use their own account (a guest account needs no plan), you
+see that they are connected, and you can withdraw the invitation any time. The
+route shows *anchor offline* while the Anchor machine is off or asleep, and
+comes back by itself.
 
 **LAN access** is off by default: nothing that goes through the Anchor can
-reach your home network. Turn it on and *your own devices* on that route can —
-invited people never can. Use a machine that is always on (a Pi, a NAS, a
-router) rather than a laptop; the home upload speed is the ceiling for
-everyone using the Anchor.
+reach the network the Anchor is on. Turn it on and *your own devices* on that
+route can — invited people never can. Use a machine that is always on (a Pi, a
+NAS, a router, a VPS) rather than a laptop; the Anchor's upload speed is the
+ceiling for everyone using it.
 
 ### How it runs, and what keeps it safe
 
@@ -422,10 +455,15 @@ everyone using the Anchor.
   store.
 - **No ports to open.** The Anchor dials *out* to the rel2 node with a certificate
   of its own (a separate certificate authority — an Anchor can never pass as a
-  rel2 node, nor the other way round). Traffic arriving for the internet is
-  handled by a user-space network stack inside the service: nothing is added to
-  your machine's routing table or firewall, and nothing on the machine is
-  reachable through the link.
+  rel2 node, nor the other way round). The link itself runs two ways at once:
+  **direct** — plain WireGuard over UDP to the entry node's link port (the
+  Anchor sends first, so the home router's NAT lets the answers back in) — and
+  **relay**, the same packets inside the TLS connection, for networks where UDP
+  is filtered. Handshakes go out on both; whichever answers carries the traffic,
+  and the link moves between them without dropping. Traffic arriving for the
+  internet is handled by a user-space network stack inside the service: nothing
+  is added to your machine's routing table or firewall, and nothing on the
+  machine is reachable through the link.
 - **The guard.** Private addresses (your home network), loopback, link-local,
   multicast and outgoing mail (port 25) are refused; LAN access only opens
   private addresses, only for your own devices. Refusals are counted on the
@@ -537,7 +575,7 @@ Anchor mode state: name and id, whether the mode is on and running, the public I
 the rel2 node sees, the account's switch, the last sync, the certificate's expiry,
 each link (node, up/down, traffic, the routes it carries) and the counters —
 live connections and flows refused by the LAN/port guard. See
-[Anchor mode](#anchor-mode--your-home-as-an-exit).
+[Anchor mode](#anchor-mode--your-own-exit).
 
 #### `wgclient anchor-setup [--name <name>] [--email <email>] [--url <url>] [--no-install]`
 Make this Linux or macOS machine an Anchor in one command (needs root): installs
@@ -774,9 +812,22 @@ to be sure of what you downloaded.
 - **Anchor: "the account session expired or was revoked"** — you changed your
   password, or the machine was off for over a month. Open the app's Anchor screen,
   or run `wgclient anchor-on`, once: it hands the service a fresh sign-in.
+- **Anchor: "could not renew the Anchor's session: … function not found
+  user.anchor.session"** (older apps) — the rel2 server was older than the app;
+  the Anchor kept working through the app's sign-in. Current apps log this
+  silently and retry in the background; once the server is current the service
+  gets a session of its own.
 - **Anchor: "turn on two-factor authentication first" / "your plan has no Anchor"**
   — Anchors need 2FA on the account and the Multi-hop (one) or Max (two) plan.
-- **A route through my Anchor says "home offline"** — the Anchor machine is off,
+- **Slow through my Anchor** — open the Anchor screen in the app (or run
+  `wgclient anchor`): a link that says *linked · relay* is going through the TLS
+  fallback, which is several times slower than the direct UDP path. Something
+  between the Anchor and the entry node blocks UDP (a strict firewall, a
+  corporate network, a router that filters "unknown" UDP): allow outgoing UDP
+  from the Anchor machine. The direct path also needs a current rel2 node (the
+  node tells the Anchor its UDP port at registration). Beyond that, the Anchor's
+  own *upload* speed is the ceiling for everyone using it.
+- **A route through my Anchor says "anchor offline"** — the Anchor machine is off,
   asleep, or without internet; `wgclient anchor` on it shows the links. Nothing
   leaks meanwhile: traffic for that route waits instead of leaving elsewhere.
 - **Windows: "anchor mode is not available in this build"** — the service is older
