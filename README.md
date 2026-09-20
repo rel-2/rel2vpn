@@ -118,6 +118,7 @@ Latest release, always at these links:
 | Linux — x64 | [rel2-vpn_linux_amd64.tar.gz](../../releases/latest/download/rel2-vpn_linux_amd64.tar.gz) |
 | Linux — ARM64 | [rel2-vpn_linux_arm64.tar.gz](../../releases/latest/download/rel2-vpn_linux_arm64.tar.gz) |
 | CLI `wgclient` — Linux x64 / ARM64 / ARMv7 (32-bit Raspberry Pi OS), macOS Intel/Apple, Windows x64/ARM64, OpenWrt (mipsle) | see the [release assets](../../releases/latest) (`wgclient_<os>_<arch>.tar.gz` / `.zip`) |
+| Android · iPhone / iPad | in preparation — the same app on a phone (sign in, Home, Routes, Devices, Account); until the store listings exist, any WireGuard or AmneziaVPN app works with a configuration from **Devices → GenConfig** on rel2.com |
 
 Every release ships a `SHA256SUMS` file — see [Verify what you run](#verify-what-you-run).
 
