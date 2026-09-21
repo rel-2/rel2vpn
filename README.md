@@ -342,6 +342,26 @@ route, you see the invitees (by username; nobody's email is shown to anybody)
 and can withdraw at any time. An invitee needs no plan: a **guest** account (no
 package) can use routes shared with it and gets two devices for them.
 
+### DNS: which resolver a route uses
+
+The resolver a device uses inside the tunnel belongs to the **route**, and
+its default follows the **exit**: every rel2 node carries the resolver its
+administrator chose for its country (Cloudflare 1.1.1.1 unless changed;
+Yandex 77.88.8.8 where foreign resolvers are blocked) — or runs a resolver
+of its own, in which case devices ask the node itself, the fastest option —,
+an Anchor answers with the household's own DNS, and a self-healing route
+follows whichever exit it lands on. Building a route ends with a DNS step
+that names what the exit provides; **Keep the exit's** is the default, and
+**Override** offers presets (Cloudflare, Quad9, Google, AdGuard, Yandex) or a
+custom list of up to three addresses fixed for that route. The routes list
+shows what applies.
+The app's Settings keep a **DNS override for this computer** only, for a
+route whose resolver does not answer on the network you are on. The
+connection details (the ? next to the exit IP, `wgclient status`, the
+phone's Home) show the resolver in use. A device with a static configuration
+keeps the resolver it was issued with until its next configuration; the app
+and the CLI pick changes up at their next connection.
+
 ### Device configurations: GenConfig and your keys
 
 Device keys are generated on your side — in your browser when you press
@@ -442,6 +462,16 @@ reach the network the Anchor is on. Turn it on and *your own devices* on that
 route can — invited people never can. Use a machine that is always on (a Pi, a
 NAS, a router, a VPS) rather than a laptop; the Anchor's upload speed is the
 ceiling for everyone using it.
+
+### DNS through an Anchor
+
+Devices on a route that exits through an Anchor resolve names through the
+Anchor itself: their configuration carries a virtual resolver address that
+the Anchor answers by forwarding to the resolvers of the machine it runs on
+— the household's own DNS (the router, the provider), so names resolve the
+way they do in that country. The route's builder can still name another
+resolver for the route. The Anchor screen's connection details and
+`wgclient status` show the resolver in use.
 
 ### How it runs, and what keeps it safe
 
