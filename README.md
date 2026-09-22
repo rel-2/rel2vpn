@@ -445,10 +445,11 @@ under your own init there.
 
 ### Use it: routes and sharing
 
-On the website the Anchor appears on the **Devices** page in the
-**⚓ Anchors — custom exits** card (the **?** next to the title explains it):
-online or off, its public IP, how many routes exit through it, **LAN access**,
-turn on/off, rename, remove. Then build a route with it: **Routes → Add →
+On the website the Anchor appears on the **Anchors** tab (the **?** next to
+the title explains it): online or off, its public IP, how many routes exit
+through it, turn on/off, rename, share, remove — and, while one of your own
+routes still exits through it, the page names that route instead of letting
+you remove the Anchor from under it. Then build a route with it: **Routes → Add →
 Double**, any rel2 node as the entry, and your Anchor under *⚓ Your Anchors* as
 the exit. Put your phone or laptop on that route like on any other, and it
 leaves the internet from the Anchor. **Share** the route with people by their
@@ -458,8 +459,12 @@ route shows *anchor offline* while the Anchor machine is off or asleep, and
 comes back by itself.
 
 **LAN access** is off by default: nothing that goes through the Anchor can
-reach the network the Anchor is on. Turn it on and *your own devices* on that
-route can — invited people never can. Use a machine that is always on (a Pi, a
+reach the network the Anchor is on. Turn it on — in the app on the Anchor
+machine itself (the desktop app's Anchor screen, the Android app's Anchor
+tab), where the machine is managed — and the devices on routes through it
+can: yours, and the people you shared it with (family printing a page,
+friends reaching your NAS — the Anchor is yours to share with or without
+its network). Use a machine that is always on (a Pi, a
 NAS, a router, a VPS) rather than a laptop; the Anchor's upload speed is the
 ceiling for everyone using it.
 
