@@ -393,22 +393,26 @@ or CLI installed before then.
 
 rel² is not only a VPN — it also connects you to your own machines. A computer
 you own — the desktop at home, a NAS, a Raspberry Pi, a VPS abroad, a GL.iNet
-router — becomes an **Anchor**: a *custom exit* that belongs to you. Wherever
+router — becomes an **Anchor**: an *edge exit* that belongs to you. Wherever
 you travel, your phone and laptop keep leaving the internet from that machine,
 with its address and its country: local streaming and services that are "for
 residents only", banking that wants the IP it knows. You can let named people —
 family abroad, a friend — use it too, by invitation. Nothing is offered to
 strangers and nothing is sold; this is your connection, for your people.
 
-Plans: **Multi-hop** runs one Anchor for your own devices; **Max** runs two and
-shares them with up to five invited people. Two-factor authentication must be on
-for the account, and the Anchor machine must not run another VPN. A machine is
+Any account can run Anchors — as many as it likes, even without a plan — and
+share each with as many people as it chooses, always by name. Using one takes a
+plan: a Double route to your own Anchor works on any plan; a Chain or Multi-hop
+route to it, and any route through an Anchor somebody shared with you, takes
+**Multi-hop** or **Max**. Two-factor
+authentication must be on for the account, and the Anchor machine must not run
+another VPN. A machine is
 either connected to rel2 or an Anchor — never both.
 
 ### Set one up with the app
 
 The app's Home has a mode selector, like a router's: **🌐 Client** (connect
-this computer to routes) or **⚓ Anchor** (make it a custom exit). On the
+this computer to routes) or **⚓ Anchor** (make it an edge exit). On the
 machine that should be the exit choose **Anchor**, give it a name (for example
 *Home desktop*) and press **Become my Anchor**. The service enrols it with your
 account (a few seconds; the screen shows *Enrolling…*, then the state or the
@@ -429,7 +433,7 @@ one command does everything:
 
 ```sh
 # pick the build: linux_amd64 (VDS), linux_arm64 (Pi 4/5 with a 64-bit OS), linux_armv7 (older Pi, 32-bit OS), darwin_arm64 / darwin_amd64 (Mac)
-curl -fsSL https://github.com/rel-2/rel2vpn/releases/latest/download/wgclient_linux_arm64.tar.gz | tar -xz
+curl -fsSL https://github.com/rel2vpn/rel2vpn/releases/latest/download/wgclient_linux_arm64.tar.gz | tar -xz
 sudo ./wgclient anchor-setup --name "Pi in Vilnius"     # installs the service, signs in (email, password, 2FA code), enrols, waits for the first sync
 wgclient anchor                                          # the state: links, public IP, counters — any time
 ```
@@ -449,12 +453,15 @@ On the website the Anchor appears on the **Anchors** tab (the **?** next to
 the title explains it): online or off, its public IP, how many routes exit
 through it, turn on/off, rename, share, remove — and, while one of your own
 routes still exits through it, the page names that route instead of letting
-you remove the Anchor from under it. Then build a route with it: **Routes → Add →
-Double**, any rel2 node as the entry, and your Anchor under *⚓ Your Anchors* as
-the exit. Put your phone or laptop on that route like on any other, and it
-leaves the internet from the Anchor. **Share** the route with people by their
-**username** — they use their own account (a guest account needs no plan), you
-see that they are connected, and you can withdraw the invitation any time. The
+you remove the Anchor from under it. Then build a route with it: **Routes → Add**,
+any shape but Direct — a Double (a rel2 node as the entry, your Anchor as the
+exit), or a Chain or Multi-hop route that ends at it (the Anchor is always the
+exit, behind at least one rel2 node). Put your phone or laptop on that route like
+on any other, and it leaves the internet from the Anchor. **Share** the Anchor
+(Anchors → Share) with people by their **username** or an invitation link — as
+many as you like. Each builds a route of their own to it (**Build route** next to
+it opens the builder with your Anchor as the exit) on their own Multi-hop or Max
+plan; you see who is connected, and you can withdraw an invitation any time. The
 route shows *anchor offline* while the Anchor machine is off or asleep, and
 comes back by itself.
 
@@ -853,8 +860,12 @@ to be sure of what you downloaded.
   the Anchor kept working through the app's sign-in. Current apps log this
   silently and retry in the background; once the server is current the service
   gets a session of its own.
-- **Anchor: "turn on two-factor authentication first" / "your plan has no Anchor"**
-  — Anchors need 2FA on the account and the Multi-hop (one) or Max (two) plan.
+- **Anchor: "turn on two-factor authentication first"** — Anchors need 2FA on the
+  account (Settings → Security).
+- **"a route through an Anchor somebody shared with you needs the Multi-hop plan or
+  higher"** — a route through a friend's Anchor is multi-hop; upgrade in Settings →
+  Subscription (the builder's upgrade page links there). A Double route to your
+  own Anchor works on any plan.
 - **Slow through my Anchor** — open the Anchor screen in the app (or run
   `wgclient anchor`): a link that says *linked · relay* is going through the TLS
   fallback, which is several times slower than the direct UDP path. Something
